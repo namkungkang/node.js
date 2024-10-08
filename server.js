@@ -10,3 +10,11 @@ app.get('/',(req,res)=>{
     res.send('반갑다')
 
 })
+
+app.get('/news',(req,res)=> {
+        res.send('뉴스임')
+})
+
+app.get('/shop',(req,res)=> {
+    res.send('쇼핑사이트임')
+})
