@@ -1,24 +1,27 @@
-import express from "express"; // -> ES Module
+import express from "express";
 import { MongoClient } from "mongodb";
 
 const app = express();
-const port = 3000;
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+let db;
 const url =
   "mongodb+srv://namkung0131:gang0131@cluster0.ixluj.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
-const client = new MongoClient(url);
-let db;
-async function run() {
-  try {
-    await client.connect();
-    console.log("몽고db연결");
-    db = client.db("forum"); 
-  } catch (err) {
-    console.error(err);
-  }
-}
+new MongoClient(url)
+  .connect()
+  .then((client) => {
+    console.log("DB연결성공");
+    db = client.db("forum");
 
-run();
+    app.listen(8080, () => {
+      console.log("http://localhost:8080 에서 서버 실행중");
+    });
+  })
+  .catch((err) => {
+    console.log(err);
+  });
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
@@ -33,8 +36,25 @@ app.get("/shop", (req, res) => {
 });
 app.get("/list", async (req, res) => {
   let result = await db.collection("post").find().toArray();
-  res.send(result[0].title);
+  res.render("list.ejs", { 글목록: result });
 });
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+
+app.get("/write", (req, res) => {
+  res.render("write.ejs");
+});
+
+app.post("/add", async (req, res) => {
+  console.log(req.body);
+  try {
+    if (req.body.title == "" || req.body.content == "") {
+      res.status(400).send('너 오류')
+    } else {
+      await db
+        .collection("post")
+        .insertOne({ title: req.body.title, 내용: req.body.content });
+    }
+  } catch (e) {
+    console.log(e);
+    res.status(500).send("입력 안됨");
+  }
 });
