@@ -7,7 +7,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 let db;
-const url = "mongodb+srv://namkung0131:gang0131@cluster0.ixluj.mongodb.net/forum?retryWrites=true&w=majority&tls=true";
+const url =
+  "mongodb+srv://namkung0131:gang0131@cluster0.ixluj.mongodb.net/forum?retryWrites=true&w=majority&tls=true";
 new MongoClient(url)
   .connect()
   .then((client) => {
@@ -46,21 +47,30 @@ app.post("/add", async (req, res) => {
   console.log(req.body);
   try {
     if (req.body.title == "" || req.body.content == "") {
-      res.status(400).send('너 오류')
+      res.status(400).send("너 오류");
     } else {
       await db
         .collection("post")
         .insertOne({ title: req.body.title, 내용: req.body.content });
     }
   } catch (e) {
-    console.log(e); 
+    console.log(e);
     res.status(500).send("입력 안됨");
   }
 });
 
-app.get('/detail/:detailId',async(req,res)=>{
-  const parm = req.params
-  await db.collection('post').findOne({_id : parm})
-  console.log(parm)
-  res.render('detail.ejs',{})
-})
+app.get("/detail/:id", async (req, res) => {
+  try {
+    let result = await db
+      .collection("post")
+      .findOne({ _id: new ObjectId(req.params.id) });
+    console.log(req.params);
+    if (result == null) {
+      res.status(404).send("벗어난 url");
+    }
+    res.render("detail.ejs", { result: result });
+  } catch (e) {
+    console.log(e);
+    res.status(404).send("벗어난 url");
+  }
+});
