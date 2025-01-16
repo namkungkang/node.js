@@ -1,5 +1,5 @@
 import express from "express";
-import { MongoClient } from "mongodb";
+import { MongoClient, ObjectId } from "mongodb";
 
 const app = express();
 
@@ -7,8 +7,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 let db;
-const url =
-  "mongodb+srv://namkung0131:gang0131@cluster0.ixluj.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+const url = "mongodb+srv://namkung0131:gang0131@cluster0.ixluj.mongodb.net/forum?retryWrites=true&w=majority&tls=true";
 new MongoClient(url)
   .connect()
   .then((client) => {
@@ -54,7 +53,14 @@ app.post("/add", async (req, res) => {
         .insertOne({ title: req.body.title, 내용: req.body.content });
     }
   } catch (e) {
-    console.log(e);
+    console.log(e); 
     res.status(500).send("입력 안됨");
   }
 });
+
+app.get('/detail/:detailId',async(req,res)=>{
+  const parm = req.params
+  await db.collection('post').findOne({_id : parm})
+  console.log(parm)
+  res.render('detail.ejs',{})
+})
