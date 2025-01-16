@@ -74,3 +74,31 @@ app.get("/detail/:id", async (req, res) => {
     res.status(404).send("벗어난 url");
   }
 });
+
+app.get("/edit/:id", async (req, res) => {
+  const editer = await db
+    .collection("post")
+    .findOne({ _id: new ObjectId(req.params.id) });
+  console.log(editer);
+  res.render("edit.ejs", { editer: editer });
+});
+
+try {
+  app.post("/edit", async (req, res) => {
+    if (req.body.title == "" ||req.body.content == "" || req.body.id == "") {
+      res.status(400).send("입력해주세여");
+    }
+    await db
+      .collection("post")
+      .updateOne(
+        { _id: new ObjectId(req.body.id) }, 
+        { $set: { title: req.body.title, content: req.body.content } }
+      );
+
+    res.redirect("/list");
+    console.log(req.body);
+  });
+} catch (e) {
+  console.log(e);
+  res.status(400).send("오류ㅠ");
+}
