@@ -102,3 +102,8 @@ try {
   console.log(e);
   res.status(400).send("오류ㅠ");
 }
+
+app.delete('/delete',async(req,res)=> {
+  await db.collection('post').deleteOne({_id:new ObjectId(req.query.docid)})
+  res.send('삭제완료')
+})

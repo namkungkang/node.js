@@ -1,9 +1,45 @@
 <%- include('nav.ejs') %>
   <div class="white-box">
-    <% for (var i = 0; i < 글목록.length; i++){ %>
-    <div class="list-box">
-     <h4><a href="/detail/<%=글목록[i]._id%>"><%= 글목록[i].title %></a></h4>
-      <a href="/edit/<%=글목록[i]._id%>">수정</a>
-      <p>글내용임</p>
-  </div>
-  <%}%>
+    <% for (var i=0; i < 글목록.length; i++){ %>
+      <div class="list-box">
+        <h4><a href="/detail/<%=글목록[i]._id%>">
+            <%= 글목록[i].title %>
+          </a></h4>
+        <a href="/edit/<%=글목록[i]._id%>">수정</a>
+        <p><%=글목록[i].content %></p>
+        <span class="delete" data-id="<%=글목록[i]._id%>">휴지통</span>
+      </div>
+      <%}%>
+
+
+        <script>
+          // console.log('<%=글목록[0]._id%>')
+          document.querySelectorAll('.delete')[0]
+            .addEventListener('click', (e) => {
+
+              fetch('/delete?docid=' + e.target.dataset.id, {
+                method: 'DELETE'
+
+              })
+            })
+
+
+          document.querySelectorAll('.delete')[1]
+            .addEventListener('click', (e) => {
+
+              fetch('/delete?docid=' + e.target.dataset.id, {
+                method: 'DELETE'
+
+              })
+            })
+
+          document.querySelectorAll('.delete')[2]
+            .addEventListener('click', (e) => {
+
+              fetch('/delete?docid=' + e.target.dataset.id, {
+                method: 'DELETE'
+
+              })
+            })
+
+        </script>
