@@ -85,13 +85,13 @@ app.get("/edit/:id", async (req, res) => {
 
 try {
   app.post("/edit", async (req, res) => {
-    if (req.body.title == "" ||req.body.content == "" || req.body.id == "") {
+    if (req.body.title == "" || req.body.content == "" || req.body.id == "") {
       res.status(400).send("입력해주세여");
     }
     await db
       .collection("post")
       .updateOne(
-        { _id: new ObjectId(req.body.id) }, 
+        { _id: new ObjectId(req.body.id) },
         { $set: { title: req.body.title, content: req.body.content } }
       );
 
@@ -103,7 +103,20 @@ try {
   res.status(400).send("오류ㅠ");
 }
 
-app.delete('/delete',async(req,res)=> {
-  await db.collection('post').deleteOne({_id:new ObjectId(req.query.docid)})
-  res.send('삭제완료')
-})
+app.delete("/delete", async (req, res) => {
+  await db.collection("post").deleteOne({ _id: new ObjectId(req.query.docid) });
+  res.send("삭제완료");
+});
+
+app.get("/list/:id", async (req, res) => {
+  let result = await db.collection("post").find().skip((req.params.id-1)*5).limit(5).toArray();
+  res.render("list.ejs", { 글목록: result });
+});
+
+
+app.get("/list/next/:id", async (req, res) => {
+  let result = await db.collection("post")
+  .find({_id : {$gt: new ObjectId(req.params.id)}})
+  .limit(5).toArray();
+  res.render("list.ejs", { 글목록: result });
+});
