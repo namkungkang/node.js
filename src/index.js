@@ -1,10 +1,25 @@
 import express from "express";
 import { MongoClient, ObjectId } from "mongodb";
+import session from "express-session";
+import passport from "passport";
+import LocalStrategy from "passport-local";
 
 const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use(passport.initialize());
+app.use(
+  session({
+    secret: "암호화에 쓸 비번",
+    resave: false,
+    saveUninitialized: false,
+    cookie: { maxAge: 60 * 60 * 1000 },
+  })
+);
+
+app.use(passport.session());
 
 let db;
 const url =
@@ -109,14 +124,69 @@ app.delete("/delete", async (req, res) => {
 });
 
 app.get("/list/:id", async (req, res) => {
-  let result = await db.collection("post").find().skip((req.params.id-1)*5).limit(5).toArray();
+  let result = await db
+    .collection("post")
+    .find()
+    .skip((req.params.id - 1) * 5)
+    .limit(5)
+    .toArray();
   res.render("list.ejs", { 글목록: result });
 });
 
-
 app.get("/list/next/:id", async (req, res) => {
-  let result = await db.collection("post")
-  .find({_id : {$gt: new ObjectId(req.params.id)}})
-  .limit(5).toArray();
+  let result = await db
+    .collection("post")
+    .find({ _id: { $gt: new ObjectId(req.params.id) } })
+    .limit(5)
+    .toArray();
   res.render("list.ejs", { 글목록: result });
+});
+
+passport.use(
+  new LocalStrategy(async (입력한아이디, 입력한비번, cb) => {
+    let result = await db
+      .collection("user")
+      .findOne({ username: 입력한아이디 });
+    if (!result) {
+      return cb(null, false, { message: "아이디 DB에 없음" });
+    }
+    if (result.password == 입력한비번) {
+      return cb(null, result);
+    } else {
+      return cb(null, false, { message: "비번불일치" });
+    }
+  })
+);
+
+passport.serializeUser((user, done) => {
+  console.log(user);
+  process.nextTick(() => {
+    done(null, { id: user._id, username: user.username });
+  });
+});
+
+passport.deserializeUser(async (user, done) => {
+  let result = await db
+    .collection("user")
+    .findOne({ _id: new ObjectId(user.id) });
+    delete result.password
+  process.nextTick(() => {
+    return done(null, result);
+  });
+});
+
+app.get("/login", (req, res) => {
+  console.log(req.user)
+  res.render("login.ejs");
+});
+
+app.post("/login", async (req, res, next) => {
+  passport.authenticate("local", (error, user, info) => {
+    if (error) return res.status(500).json(error);
+    if (!user) return res.status(401).json(info.message);
+    req.logIn(user, (err) => {
+      if (err) return next(err);
+      res.redirect("/");
+    });
+  })(req, res, next);
 });
